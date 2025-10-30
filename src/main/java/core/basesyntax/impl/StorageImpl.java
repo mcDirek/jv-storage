@@ -14,34 +14,39 @@ public class StorageImpl<K, V> implements Storage<K, V> {
     public StorageImpl() {
         keys = (K[]) new Object[MAX_SIZE];
         values = (V[]) new Object[MAX_SIZE];
+        size = 0;
     }
 
     @Override
     public void put(K key, V value) {
-        for (int i = 0; i < size; i++) {
-            if (Objects.equals(keys[i], key)) {
-                values[i] = value;
-                return;
-            }
+        int idx = indexOfKey(key); // avoid duplication (CHECKLIST #5)
+        if (idx >= 0) {
+            // key exists -> replace value
+            values[idx] = value;
+            return;
         }
-
-        if (size < MAX_SIZE) {
-            keys[size] = key;
-            values[size] = value;
-            size++;
-        } else {
+        // new key
+        if (size >= MAX_SIZE) {
             throw new IllegalStateException("Storage is full!");
         }
+        keys[size] = key;
+        values[size] = value;
+        size++;
     }
 
     @Override
     public V get(K key) {
+        int idx = indexOfKey(key); // reuse helper
+        return idx >= 0 ? values[idx] : null;
+    }
+
+    private int indexOfKey(K key) {
         for (int i = 0; i < size; i++) {
             if (Objects.equals(keys[i], key)) {
-                return values[i];
+                return i;
             }
         }
-        return null;
+        return -1;
     }
 
     @Override
