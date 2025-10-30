@@ -6,23 +6,22 @@ public class StorageImpl<K, V> implements Storage<K, V> {
     private static final int MAX_SIZE = 10;
     private final K[] keys;
     private final V[] values;
-    private int size = 0;
+    private int size;
 
     @SuppressWarnings("unchecked")
     public StorageImpl() {
         keys = (K[]) new Object[MAX_SIZE];
         values = (V[]) new Object[MAX_SIZE];
+        size = 0;
     }
 
     @Override
     public void put(K key, V value) {
-        int idx = indexOfKey(key); // avoid duplication (CHECKLIST #5)
+        int idx = indexOfKey(key);
         if (idx >= 0) {
-            // key exists -> replace value
-            values[idx] = value;
+            values[idx] = value; // перезапис значення
             return;
         }
-        // new key
         if (size >= MAX_SIZE) {
             throw new IllegalStateException("Storage is full!");
         }
@@ -33,13 +32,16 @@ public class StorageImpl<K, V> implements Storage<K, V> {
 
     @Override
     public V get(K key) {
-        int idx = indexOfKey(key); // reuse helper
+        int idx = indexOfKey(key);
         return idx >= 0 ? values[idx] : null;
     }
 
     private int indexOfKey(K key) {
         for (int i = 0; i < size; i++) {
-            if (keys[i] == key) {
+            if (key == null && keys[i] == null) {
+                return i;
+            }
+            if (key != null && key.equals(keys[i])) {
                 return i;
             }
         }
